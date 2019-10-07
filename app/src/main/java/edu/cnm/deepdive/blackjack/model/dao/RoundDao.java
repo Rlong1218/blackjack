@@ -22,9 +22,9 @@ public interface RoundDao {
   LiveData<List<Round>> getAllByShoeId(long shoeId);
 
   @Query("SELECT * FROM Round WHERE round_id = :roundId")
-  LiveData<Round> getByRoundId(long roundId);
+  LiveData<Round> getRoundId(long roundId);
 
   @Transaction
   @Query("SELECT * FROM Round WHERE round_id = :roundId")
-  LiveData<RoundWithDetails> getRoundsWithDetails(long roundId);
+  LiveData<RoundWithDetails> getRoundWithDetails(long roundId);
 }

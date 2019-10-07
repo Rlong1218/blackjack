@@ -12,6 +12,7 @@ import edu.cnm.deepdive.blackjack.model.entity.Card.Suit;
 import edu.cnm.deepdive.blackjack.model.entity.Hand;
 import edu.cnm.deepdive.blackjack.model.entity.Round;
 import edu.cnm.deepdive.blackjack.model.entity.Shoe;
+import edu.cnm.deepdive.blackjack.model.pojo.HandWithCards;
 import edu.cnm.deepdive.blackjack.model.pojo.RoundWithDetails;
 import edu.cnm.deepdive.blackjack.service.BlackjackDatabase;
 import java.security.SecureRandom;
@@ -27,18 +28,36 @@ public class MainViewModel extends AndroidViewModel {
   private Random rng;
   private MutableLiveData<Long> roundId;
   private LiveData<RoundWithDetails> round;
+  private MutableLiveData<Long> dealerHandId;
+  private MutableLiveData<Long> playerHandId;
+  private LiveData<HandWithCards> dealerHand;
+  private LiveData<HandWithCards> playerHand;
 
   public MainViewModel(@NonNull Application application) {
     super(application);
     database = BlackjackDatabase.getInstance();
-    rng = new SecureRandom(); //TODO Use Mersenne Twister
+    rng = new SecureRandom(); // TODO Use Mersenne Twister.
     roundId = new MutableLiveData<>();
     round = Transformations.switchMap(roundId,
-        (id) -> database.getRoundDao().getRoundsWithDetails(id));
+        (id) -> database.getRoundDao().getRoundWithDetails(id));
+    dealerHandId = new MutableLiveData<>();
+    dealerHand = Transformations.switchMap(dealerHandId,
+        (id) -> database.getHandDao().getHandWithCards(id));
+    playerHandId = new MutableLiveData<>();
+    playerHand = Transformations.switchMap(playerHandId,
+        (id) -> database.getHandDao().getHandWithCards(id));
   }
 
   public LiveData<RoundWithDetails> getRound() {
     return round;
+  }
+
+  public LiveData<HandWithCards> getDealerHand() {
+    return dealerHand;
+  }
+
+  public LiveData<HandWithCards> getPlayerHand() {
+    return playerHand;
   }
 
   private void createShoe() {
@@ -69,7 +88,7 @@ public class MainViewModel extends AndroidViewModel {
   public void startRound() {
     new Thread(() -> {
       Round round = new Round();
-      if (shoeId == 0) { //TODO Add check of shuffle needed.
+      if (shoeId == 0) { // TODO Add check of shuffle needed.
         createShoe();
       }
       round.setShoeId(shoeId);
@@ -89,6 +108,8 @@ public class MainViewModel extends AndroidViewModel {
         }
       }
       this.roundId.postValue(roundId);
+      this.dealerHandId.postValue(handIds[0]);
+      this.playerHandId.postValue(handIds[1]);
     }).start();
   }
 
